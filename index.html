@@ -147,6 +147,26 @@
   .wk.current{outline:3px solid #b08322;outline-offset:2px;}
   .wk.current .wk-head:after{content:"aktuell";background:#b08322;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
   @media print{ .reminder,.btn-week{display:none!important;} }
+  /* --- Verschönerung / Motivation --- */
+  body{background:linear-gradient(#e9f1ec,#f4f6f3 280px);}
+  header.hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#2f6b52,#3f8b6a);}
+  .hero-text{flex:1;min-width:0;}
+  .hero-art{width:180px;height:118px;flex:0 0 auto;}
+  .motto{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:12px;padding:12px 16px;margin:0 0 14px;font-style:italic;color:#3a4a42;font-size:15.5px;}
+  .motto-ic{font-style:normal;font-size:18px;}
+  .ov-progress{margin-top:14px;}
+  .ovp-bar{height:14px;background:#e2ece6;border-radius:10px;overflow:hidden;}
+  .ovp-fill{height:100%;width:0;background:linear-gradient(90deg,#2f6b52,#59a97e);border-radius:10px;transition:width .5s ease;}
+  .ovp-lab{margin-top:6px;font-size:13.5px;font-weight:700;color:var(--green-d);text-align:center;}
+  .band{position:relative;overflow:hidden;padding-right:56px;}
+  .band:after{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:34px;opacity:.85;}
+  .band.green:after{content:"🥗";}
+  .band.orange:after{content:"🍳";}
+  .band.blue:after{content:"🚶";}
+  .band.gold:after{content:"⭐";}
+  .confetti{position:fixed;top:-14px;width:9px;height:14px;border-radius:2px;z-index:60;opacity:.95;animation:cfall 1.8s linear forwards;pointer-events:none;}
+  @keyframes cfall{ to{ transform:translateY(106vh) rotate(540deg); opacity:.6; } }
+  @media (max-width:560px){ .hero-art{display:none;} }
   .footer{border-top:1px solid var(--line);margin-top:22px;padding-top:12px;font-size:12.5px;color:var(--muted);}
   a{color:var(--green);}
 
@@ -175,15 +195,28 @@
 
   <div id="storagewarn" class="storagewarn" style="display:none;">⚠ <b>Achtung:</b> Dieser Browser speichert gerade nichts dauerhaft (vermutlich privater/Inkognito-Modus). Deine Einträge gehen beim Schließen verloren. Öffne die Seite im normalen Browser — oder nutze unten „⬇ Sicherung herunterladen".</div>
 
-  <div id="backupreminder" class="reminder" style="display:none;">
-    <span>💾 <b>Zeit für eine Sicherung.</b> So geht bei Handy-Wechsel oder Browser-Aufräumen nichts verloren.</span>
-    <span class="rm-btns"><button class="btn-save" onclick="exportBackup()">Jetzt sichern</button><button class="btn-reset" onclick="snoozeReminder()">Später</button></span>
-  </div>
-
   <header class="hero">
-    <h1>Plan für Michi</h1>
-    <p>In kleinen Schritten. Kein Hungern, keine Diät — Muskeln halten, sich wohlfühlen, ein paar Kilo weniger.</p>
+    <div class="hero-text">
+      <h1>Plan für Michi</h1>
+      <p>In kleinen Schritten. Kein Hungern, keine Diät — Muskeln halten, sich wohlfühlen, ein paar Kilo weniger.</p>
+    </div>
+    <svg class="hero-art" viewBox="0 0 200 130" fill="none" aria-hidden="true">
+      <circle cx="165" cy="30" r="15" fill="#ffd98a"/>
+      <g stroke="#ffd98a" stroke-width="2.4" stroke-linecap="round">
+        <path d="M165 6v-5M165 60v5M141 30h-5M194 30h-5M148 13l-3.5-3.5M182 47l3.5 3.5M182 13l3.5-3.5M148 47l-3.5 3.5"/>
+      </g>
+      <path d="M6 118 C40 118 44 86 74 84 C104 82 104 54 134 50 C158 47 168 40 182 36" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-dasharray="1.5 9"/>
+      <g fill="#ffffff">
+        <circle cx="26" cy="112" r="2.4"/><circle cx="52" cy="100" r="2.4"/><circle cx="78" cy="86" r="2.4"/><circle cx="104" cy="74" r="2.4"/><circle cx="128" cy="58" r="2.4"/>
+      </g>
+      <path d="M182 36v-22" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M182 15h16l-4 5 4 5h-16z" fill="#ff9d76"/>
+      <path d="M40 96c-6-6-14-4-16 2 8 4 14 2 16-2z" fill="#a8e0c2"/>
+      <path d="M96 66c6-6 14-4 16 2-8 4-14 2-16-2z" fill="#a8e0c2"/>
+    </svg>
   </header>
+
+  <div class="motto"><span class="motto-ic">✨</span><span id="mottoText">Kleine Schritte, jeden Tag — das ist das ganze Geheimnis.</span></div>
 
   <div class="goal">
     <div class="lab">Mein Ziel</div>
@@ -205,6 +238,10 @@
       <div class="ov-stat"><div class="ov-num" id="ovChecks">0</div><div class="ov-lab">Häkchen gesamt</div></div>
       <div class="ov-stat"><div class="ov-num" id="ovKraft">0</div><div class="ov-lab">Kraft-Einheiten</div></div>
       <div class="ov-stat"><div class="ov-num" id="ovWeight">–</div><div class="ov-lab" id="ovWeightLab">Gewicht (Log ausfüllen)</div></div>
+    </div>
+    <div class="ov-progress">
+      <div class="ovp-bar"><div class="ovp-fill" id="ovpFill"></div></div>
+      <div class="ovp-lab" id="ovpLab">Los geht’s! 🌱</div>
     </div>
     <div class="ov-chart" id="ovChart"></div>
   </div>
@@ -464,9 +501,17 @@
   document.addEventListener('click', function(e){
     var td = e.target.closest ? e.target.closest('td.tick') : null;
     if(td){
+      var turnedOn = !td.classList.contains('on');
       td.classList.toggle('on');
       var wk = td.closest('.wk');
-      if(wk){ updateCount(wk); }
+      if(wk){
+        updateCount(wk);
+        if(turnedOn && td.hasAttribute('data-rule')){
+          var cnt = wk.querySelectorAll('td.tick[data-rule].on').length;
+          var no = wk.querySelector('.wk-no'); var lbl = no ? no.textContent : 'Woche';
+          if(cnt === 21){ celebrate(lbl + ' komplett! 🎉 Stark, Michi!'); }
+        }
+      }
       saveState();
     }
   });
@@ -494,6 +539,10 @@
     var kraft = document.querySelectorAll('tr.kraft td.tick.on').length;
     var ce = document.getElementById('ovChecks'); if(ce){ ce.textContent = checks; }
     var ke = document.getElementById('ovKraft'); if(ke){ ke.textContent = kraft; }
+    var total = document.querySelectorAll('td.tick[data-rule]').length;
+    var pct = total ? Math.round(checks / total * 100) : 0;
+    var pf = document.getElementById('ovpFill'); if(pf){ pf.style.width = pct + '%'; }
+    var pl = document.getElementById('ovpLab'); if(pl){ pl.textContent = pct + ' % geschafft · ' + motLabel(pct); }
     var ws = [];
     document.querySelectorAll('#weighbody tr').forEach(function(tr){
       var inp = tr.querySelectorAll('input');
@@ -585,11 +634,54 @@
     window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
   }
 
+  // --- Motivation ---
+  function motLabel(p){
+    if(p >= 100){ return 'Alle 8 Wochen geschafft! 🏆'; }
+    if(p >= 75){ return 'Fast am Ziel! 🌟'; }
+    if(p >= 50){ return 'Über die Hälfte! 💪'; }
+    if(p >= 25){ return 'Schön dran! 🌿'; }
+    if(p > 0){ return 'Toller Start! 🌱'; }
+    return 'Los geht’s! 🌱';
+  }
+  var MOTTOS = [
+    'Kleine Schritte, jeden Tag — das ist das ganze Geheimnis.',
+    'Nicht perfekt. Einfach dran bleiben.',
+    'Jeder Haken ist ein kleiner Sieg. 🌱',
+    'Dein Tempo ist genau richtig.',
+    'Stärker werden geht langsam — und lohnt sich. 💪',
+    'Bewegung ist ein Geschenk an dich.',
+    'Heute zählt. Mehr nicht.',
+    'Muskeln, Energie, gute Laune — du baust gerade auf.',
+    'Eine gute Woche beginnt mit einem einzigen Häkchen.',
+    'Sei stolz auf jeden Tag, an dem du dran warst.'
+  ];
+  function setMotto(){
+    var el = document.getElementById('mottoText'); if(!el){ return; }
+    var d = new Date();
+    var day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    el.textContent = MOTTOS[((day % MOTTOS.length) + MOTTOS.length) % MOTTOS.length];
+  }
+  function confetti(){
+    var colors = ['#2f6b52', '#c26a2a', '#2f6b8a', '#b08322', '#8a4a6b', '#59a97e'];
+    for(var i = 0; i < 30; i++){
+      var s = document.createElement('div');
+      s.className = 'confetti';
+      s.style.left = (Math.random() * 100) + 'vw';
+      s.style.background = colors[i % colors.length];
+      s.style.width = (7 + Math.random() * 6) + 'px';
+      s.style.animationDelay = (Math.random() * 0.35) + 's';
+      s.style.animationDuration = (1.5 + Math.random() * 0.9) + 's';
+      document.body.appendChild(s);
+      (function(node){ setTimeout(function(){ if(node.parentNode){ node.parentNode.removeChild(node); } }, 2600); })(s);
+    }
+  }
+  function celebrate(msg){ confetti(); flash(msg); }
+
   storageCheck();
   loadState();
   refreshOverview();
   refreshCurrentWeek();
-  checkReminder();
+  setMotto();
 </script>
 </body>
 </html>

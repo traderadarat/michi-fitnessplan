@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Plan für Michi — zum Ausfüllen</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2f6b52">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Michi-Plan">
 <style>
   :root{
     --green:#2f6b52; --green-d:#234f3d; --orange:#c26a2a; --blue:#2f6b8a;
@@ -113,6 +119,34 @@
   .encourage{border:2px solid var(--green);background:#e6f1ea;border-radius:12px;padding:16px;margin:18px 0;
     text-align:center;font-weight:700;color:var(--green-d);}
   .savehint{background:#fff;border:1px dashed #c3c3b8;border-radius:10px;padding:12px 14px;margin:14px 0;font-size:14px;color:#555;}
+  .btn-save{background:#2f6b52;color:#fff;}
+  .btn-backup{background:#eef5f0;color:#234f3d;border:1px solid #cfe0d6;}
+  .storagewarn{background:#fdecea;border:1.5px solid #e0a3a0;color:#8a2f28;border-radius:10px;padding:12px 14px;margin:14px 0;font-size:14.5px;}
+  .saveblock{border:2px solid #2f6b52;background:#eef5f0;border-radius:14px;padding:18px;margin:24px 0;text-align:center;}
+  .saveblock .sb-title{font-weight:800;color:#234f3d;font-size:18px;margin-bottom:6px;}
+  .saveblock .sb-text{font-size:14.5px;color:#3a3a34;max-width:640px;margin:0 auto 12px;}
+  .sb-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .btn-save.big{font-size:17px;padding:14px 26px;}
+  .saved-note{margin-top:10px;font-size:13.5px;color:#5c7a6c;}
+  .saved-note.ok{color:#2f6b52;font-weight:600;}
+  #flash{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#234f3d;color:#fff;padding:12px 20px;border-radius:24px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:50;}
+  #flash.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  @media print{ .saveblock,.storagewarn,#flash{display:none!important;} }
+  @media (max-width:520px){ td.tick{height:42px;} }
+  .overview{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:16px 0;}
+  .ov-head{font-weight:800;color:var(--green-d);margin-bottom:10px;}
+  .ov-grid{display:flex;gap:10px;flex-wrap:wrap;}
+  .ov-stat{flex:1;min-width:110px;background:#eef5f0;border-radius:10px;padding:12px;text-align:center;}
+  .ov-num{font-size:26px;font-weight:800;color:var(--green);}
+  .ov-lab{font-size:12.5px;color:#5c7a6c;margin-top:2px;}
+  .ov-chart{margin-top:12px;}
+  .ov-chart svg{width:100%;height:70px;display:block;}
+  .reminder{background:#fff7e6;border:1.5px solid #e6c977;color:#7a5b12;border-radius:10px;padding:12px 14px;margin:14px 0;font-size:14.5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between;}
+  .rm-btns{display:flex;gap:8px;}
+  .btn-week{background:#b08322;color:#fff;font-weight:700;border-radius:8px;padding:9px 16px;border:0;cursor:pointer;}
+  .wk.current{outline:3px solid #b08322;outline-offset:2px;}
+  .wk.current .wk-head:after{content:"aktuell";background:#b08322;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+  @media print{ .reminder,.btn-week{display:none!important;} }
   .footer{border-top:1px solid var(--line);margin-top:22px;padding-top:12px;font-size:12.5px;color:var(--muted);}
   a{color:var(--green);}
 
@@ -130,12 +164,21 @@
 <div class="topbar">
   <span class="tt">Plan für Michi — zum Ausfüllen</span>
   <div class="btns">
-    <button class="btn-print" onclick="window.print()">🖨 Drucken / Als PDF speichern</button>
+    <button class="btn-save" onclick="manualSave()">💾 Speichern</button>
+    <button class="btn-print" onclick="window.print()">🖨 Drucken / PDF</button>
+    <button class="btn-backup" onclick="exportBackup()">⬇ Sicherung</button>
     <button class="btn-reset" onclick="resetAll()">Zurücksetzen</button>
   </div>
 </div>
 
 <div class="wrap">
+
+  <div id="storagewarn" class="storagewarn" style="display:none;">⚠ <b>Achtung:</b> Dieser Browser speichert gerade nichts dauerhaft (vermutlich privater/Inkognito-Modus). Deine Einträge gehen beim Schließen verloren. Öffne die Seite im normalen Browser — oder nutze unten „⬇ Sicherung herunterladen".</div>
+
+  <div id="backupreminder" class="reminder" style="display:none;">
+    <span>💾 <b>Zeit für eine Sicherung.</b> So geht bei Handy-Wechsel oder Browser-Aufräumen nichts verloren.</span>
+    <span class="rm-btns"><button class="btn-save" onclick="exportBackup()">Jetzt sichern</button><button class="btn-reset" onclick="snoozeReminder()">Später</button></span>
+  </div>
 
   <header class="hero">
     <h1>Plan für Michi</h1>
@@ -154,6 +197,16 @@
     <div class="rule green"><span class="n">1</span>Bei jeder Mahlzeit etwas Eiweiß</div>
     <div class="rule blue"><span class="n">2</span>Jeden Tag 20–30 Minuten bewegen (walken / laufen / Rad)</div>
     <div class="rule orange"><span class="n">3</span>Keine gezuckerten Getränke</div>
+  </div>
+
+  <div class="overview" id="overview">
+    <div class="ov-head">📊 Mein Überblick</div>
+    <div class="ov-grid">
+      <div class="ov-stat"><div class="ov-num" id="ovChecks">0</div><div class="ov-lab">Häkchen gesamt</div></div>
+      <div class="ov-stat"><div class="ov-num" id="ovKraft">0</div><div class="ov-lab">Kraft-Einheiten</div></div>
+      <div class="ov-stat"><div class="ov-num" id="ovWeight">–</div><div class="ov-lab" id="ovWeightLab">Gewicht (Log ausfüllen)</div></div>
+    </div>
+    <div class="ov-chart" id="ovChart"></div>
   </div>
 
   <!-- ESSEN -->
@@ -238,7 +291,8 @@
 
   <!-- TRACKER -->
   <div class="band green"><h2>Meine ersten 8 Wochen — zum Ankreuzen</h2><p>Jeden Abend die Häkchen setzen. Ein guter Tag = drei Häkchen untereinander.</p></div>
-  <div class="savehint">💡 <b>So nutzt du diese Seite:</b> Häkchen anklicken, Datum &amp; Gewicht eintippen — die Zähler „von 21" rechnen sich von selbst. <b>Dein Stand wird automatisch auf diesem Gerät gespeichert</b> (Handy oder PC): du kannst die Seite jederzeit schließen und später weitermachen. Ausdrucken / als PDF sichern über den Knopf oben. <em>Hinweis: gespeichert wird je Gerät &amp; Browser — auf einem neuen Gerät startet die Liste leer.</em></div>
+  <div class="savehint">💡 <b>So nutzt du diese Seite:</b> Häkchen anklicken, Datum &amp; Gewicht eintippen — die Zähler „von 21" rechnen sich von selbst. <b>Dein Stand wird automatisch auf diesem Gerät gespeichert</b>, du kannst die Seite also jederzeit schließen und später weitermachen. Ganz unten gibt es zusätzlich einen <b>„Jetzt speichern"</b>-Knopf und <b>„Sicherung herunterladen"</b> — die Sicherung schützt deine Einträge, falls du den Browser aufräumst oder das Handy wechselst.</div>
+  <div style="text-align:center;margin:2px 0 14px;"><button class="btn-week" onclick="jumpCurrent()">↓ Zur aktuellen Woche springen</button></div>
   <div id="tracker"></div>
 
   <!-- WIEGEN -->
@@ -250,6 +304,18 @@
   </table>
 
   <div class="encourage">Eine schlechte Woche ist kein Scheitern. Dann wird einfach weitergemacht — nicht neu angefangen. 💚</div>
+
+  <div class="saveblock">
+    <div class="sb-title">💾 Zwischenspeichern &amp; sichern</div>
+    <p class="sb-text">Deine Einträge werden <b>automatisch auf diesem Gerät gespeichert</b> — du kannst die Seite jederzeit schließen. Ganz sicher gehst du mit einer <b>Sicherungsdatei</b>: die bleibt auch dann erhalten, wenn du den Browser aufräumst oder das Handy wechselst. Zum Zurückholen einfach „Sicherung laden".</p>
+    <div class="sb-btns">
+      <button class="btn-save big" onclick="manualSave()">💾 Jetzt speichern</button>
+      <button class="btn-backup" onclick="exportBackup()">⬇ Sicherung herunterladen</button>
+      <button class="btn-backup" onclick="document.getElementById('importfile').click()">⬆ Sicherung laden</button>
+      <input id="importfile" type="file" accept="application/json,.json" style="display:none" onchange="importBackup(this.files[0])">
+    </div>
+    <div id="savednote" class="saved-note">Noch nichts gespeichert.</div>
+  </div>
 
   <div class="footer">
     Dieser Plan ersetzt kein ärztliches Gespräch. Die bioidentischen Hormone und der Cholesterinsenker laufen normal weiter — der Plan passt gut dazu. Zum Statin: selten Muskelschmerzen möglich — bei ungewöhnlichem Muskelschmerz/Schwäche (nicht normaler Muskelkater) ärztlich abklären. Manche Statine (z. B. Simvastatin, Atorvastatin) vertragen sich nicht mit Grapefruit, andere (z. B. Fluvastatin, Pravastatin) schon — die Apotheke weiß es. Gute Nachricht: mehr Bewegung und ein paar Kilo weniger verbessern oft die Blutfettwerte — beim nächsten Termin Kontrolle, Dosis lässt sich evtl. anpassen. Kostenlose Unterstützung: ÖGK-Ernährungsberatung Steiermark (05 0766 155521, ernaehrung@oegk.at) — deckt auch Blutfettwerte &amp; Wohlfühlgewicht ab.
@@ -321,25 +387,78 @@
     if(c){ c.textContent = on; }
   }
 
-  // --- Auto-Speichern pro Gerät (localStorage) ---
+  // --- Auto-Speichern pro Gerät (localStorage) + Sicherung ---
   var STORE = 'plan_michi_rauter_v1';
+
+  function collect(){
+    return {
+      t: [].map.call(document.querySelectorAll('td.tick'), function(t){ return t.classList.contains('on') ? 1 : 0; }),
+      i: [].map.call(document.querySelectorAll('input[type=text]'), function(i){ return i.value; }),
+      savedAt: new Date().toLocaleString('de-AT')
+    };
+  }
+  function apply(s){
+    var ticks = document.querySelectorAll('td.tick');
+    (s.t||[]).forEach(function(v, idx){ if(ticks[idx]){ ticks[idx].classList.toggle('on', !!v); } });
+    var ins = document.querySelectorAll('input[type=text]');
+    (s.i||[]).forEach(function(v, idx){ if(ins[idx] != null){ ins[idx].value = v; } });
+    document.querySelectorAll('.wk').forEach(function(wk){ updateCount(wk); });
+  }
+  function markSaved(when, prefix){
+    var n = document.getElementById('savednote');
+    if(n){ n.textContent = (prefix || 'Zuletzt gespeichert: ') + (when || new Date().toLocaleString('de-AT')); n.classList.add('ok'); }
+  }
   function saveState(){
-    try{
-      var ticks = [].map.call(document.querySelectorAll('td.tick'), function(t){ return t.classList.contains('on') ? 1 : 0; });
-      var ins = [].map.call(document.querySelectorAll('input[type=text]'), function(i){ return i.value; });
-      localStorage.setItem(STORE, JSON.stringify({t:ticks, i:ins}));
-    }catch(e){}
+    try{ var s = collect(); localStorage.setItem(STORE, JSON.stringify(s)); markSaved(s.savedAt); }catch(e){}
   }
   function loadState(){
     try{
-      var raw = localStorage.getItem(STORE); if(!raw) return;
-      var s = JSON.parse(raw);
-      var ticks = document.querySelectorAll('td.tick');
-      (s.t||[]).forEach(function(v, idx){ if(ticks[idx] && v){ ticks[idx].classList.add('on'); } });
-      var ins = document.querySelectorAll('input[type=text]');
-      (s.i||[]).forEach(function(v, idx){ if(ins[idx] != null){ ins[idx].value = v; } });
-      document.querySelectorAll('.wk').forEach(function(wk){ updateCount(wk); });
+      var raw = localStorage.getItem(STORE); if(!raw){ return; }
+      var s = JSON.parse(raw); apply(s);
+      if(s.savedAt){ markSaved(s.savedAt); }
     }catch(e){}
+  }
+  function flash(msg){
+    var f = document.getElementById('flash');
+    if(!f){ f = document.createElement('div'); f.id = 'flash'; document.body.appendChild(f); }
+    f.textContent = msg; f.className = 'show';
+    setTimeout(function(){ f.className = ''; }, 1600);
+  }
+  function manualSave(){
+    if(!storageCheck()){ flash('Kein dauerhafter Speicher — bitte Sicherung laden!'); return; }
+    saveState();
+    markSaved(new Date().toLocaleString('de-AT'), '✓ Gespeichert: ');
+    flash('Gespeichert ✓');
+  }
+  function exportBackup(){
+    try{
+      var s = collect();
+      var blob = new Blob([JSON.stringify(s)], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var d = new Date();
+      var stamp = d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'Michi-Plan-Sicherung-' + stamp + '.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      flash('Sicherung heruntergeladen ✓');
+    }catch(e){ alert('Sicherung konnte nicht erstellt werden.'); }
+  }
+  function importBackup(file){
+    if(!file){ return; }
+    var r = new FileReader();
+    r.onload = function(){
+      try{ var s = JSON.parse(r.result); apply(s); saveState(); flash('Sicherung geladen ✓'); }
+      catch(e){ alert('Diese Datei konnte nicht gelesen werden.'); }
+    };
+    r.readAsText(file);
+  }
+  function storageCheck(){
+    var ok = true;
+    try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); }catch(e){ ok = false; }
+    var w = document.getElementById('storagewarn');
+    if(w){ w.style.display = ok ? 'none' : 'block'; }
+    return ok;
   }
 
   document.addEventListener('click', function(e){
@@ -356,14 +475,121 @@
   });
 
   function resetAll(){
-    if(!confirm('Alle Häkchen und Eingaben löschen?')) return;
+    if(!confirm('Alle Häkchen und Eingaben löschen? (Tipp: vorher „Sicherung herunterladen")')) return;
     document.querySelectorAll('td.tick.on').forEach(function(t){ t.classList.remove('on'); });
     document.querySelectorAll('input[type=text]').forEach(function(i){ i.value=''; });
     document.querySelectorAll('[data-cnt]').forEach(function(c){ c.textContent='0'; });
     try{ localStorage.removeItem(STORE); }catch(e){}
+    var n = document.getElementById('savednote'); if(n){ n.textContent = 'Zurückgesetzt.'; n.classList.remove('ok'); }
   }
 
+  // --- Überblick (C) ---
+  function parseW(v){
+    if(!v){ return null; }
+    var m = String(v).replace(/\s/g,'').replace(',', '.').match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : null;
+  }
+  function refreshOverview(){
+    var checks = document.querySelectorAll('td.tick[data-rule].on').length;
+    var kraft = document.querySelectorAll('tr.kraft td.tick.on').length;
+    var ce = document.getElementById('ovChecks'); if(ce){ ce.textContent = checks; }
+    var ke = document.getElementById('ovKraft'); if(ke){ ke.textContent = kraft; }
+    var ws = [];
+    document.querySelectorAll('#weighbody tr').forEach(function(tr){
+      var inp = tr.querySelectorAll('input');
+      var w = parseW(inp[1] ? inp[1].value : '');
+      if(w != null){ ws.push(w); }
+    });
+    var owe = document.getElementById('ovWeight'); var owl = document.getElementById('ovWeightLab');
+    if(owe && owl){
+      if(ws.length){
+        var last = ws[ws.length-1];
+        owe.textContent = String(last).replace('.', ',') + ' kg';
+        if(ws.length >= 2){
+          var diff = Math.round((last - ws[0]) * 10) / 10;
+          owl.textContent = (diff === 0 ? '±0' : (diff > 0 ? '+' : '−') + String(Math.abs(diff)).replace('.', ',')) + ' kg seit Start';
+        } else { owl.textContent = 'aktuelles Gewicht'; }
+      } else { owe.textContent = '–'; owl.textContent = 'Gewicht (Log ausfüllen)'; }
+    }
+    drawSpark(ws);
+  }
+  function drawSpark(ws){
+    var box = document.getElementById('ovChart'); if(!box){ return; }
+    if(ws.length < 2){ box.innerHTML = ''; return; }
+    var W = 600, H = 70, pad = 8;
+    var mn = Math.min.apply(null, ws), mx = Math.max.apply(null, ws);
+    if(mx === mn){ mx = mn + 1; }
+    var step = (W - 2*pad) / (ws.length - 1);
+    var pts = ws.map(function(v, i){ var x = pad + i*step; var y = H - pad - ((v-mn)/(mx-mn))*(H-2*pad); return [x, y]; });
+    var dline = pts.map(function(p, i){ return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+    var dots = pts.map(function(p){ return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3" fill="#2f6b52"/>'; }).join('');
+    box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><path d="' + dline + '" fill="none" stroke="#2f6b52" stroke-width="2.5"/>' + dots + '</svg>';
+  }
+
+  // --- Aktuelle Woche (D) ---
+  function refreshCurrentWeek(){
+    var wks = document.querySelectorAll('.wk'); var cur = null;
+    wks.forEach(function(wk){
+      wk.classList.remove('current');
+      if(!cur){
+        var on = wk.querySelectorAll('td.tick[data-rule].on').length;
+        if(on < 21){ cur = wk; }
+      }
+    });
+    if(!cur && wks.length){ cur = wks[wks.length-1]; }
+    if(cur){ cur.classList.add('current'); }
+    window.__curWk = cur;
+  }
+  function jumpCurrent(){
+    refreshCurrentWeek();
+    if(window.__curWk){ window.__curWk.scrollIntoView({behavior:'smooth', block:'start'}); }
+  }
+
+  // --- Sicherungs-Erinnerung (B) ---
+  var BK = STORE + '_lastbackup';
+  var SNZ = STORE + '_snooze';
+  function hasData(){
+    if(document.querySelectorAll('td.tick.on').length){ return true; }
+    var any = false; document.querySelectorAll('input[type=text]').forEach(function(i){ if(i.value){ any = true; } }); return any;
+  }
+  function checkReminder(){
+    try{
+      var el = document.getElementById('backupreminder'); if(!el){ return; }
+      if(!hasData()){ el.style.display = 'none'; return; }
+      var now = Date.now();
+      var snz = parseInt(localStorage.getItem(SNZ) || '0', 10);
+      if(now < snz){ el.style.display = 'none'; return; }
+      var last = parseInt(localStorage.getItem(BK) || '0', 10);
+      var twoWeeks = 14*24*60*60*1000;
+      el.style.display = (!last || (now - last) > twoWeeks) ? 'flex' : 'none';
+    }catch(e){}
+  }
+  function snoozeReminder(){
+    try{ localStorage.setItem(SNZ, String(Date.now() + 3*24*60*60*1000)); }catch(e){}
+    var el = document.getElementById('backupreminder'); if(el){ el.style.display = 'none'; }
+  }
+
+  // exportBackup erweitern: Zeitpunkt merken + Erinnerung ausblenden
+  var _origExport = exportBackup;
+  exportBackup = function(){
+    _origExport();
+    try{ localStorage.setItem(BK, String(Date.now())); }catch(e){}
+    var el = document.getElementById('backupreminder'); if(el){ el.style.display = 'none'; }
+  };
+  // saveState erweitern: Überblick + aktuelle Woche live aktualisieren
+  var _origSave = saveState;
+  saveState = function(){ _origSave(); refreshOverview(); refreshCurrentWeek(); };
+
+  // Service Worker (Offline / „App")
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+
+  storageCheck();
   loadState();
+  refreshOverview();
+  refreshCurrentWeek();
+  checkReminder();
 </script>
 </body>
 </html>

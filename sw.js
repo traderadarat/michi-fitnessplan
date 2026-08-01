@@ -1,14 +1,11 @@
-/* Michi-Plan Service Worker — macht die Seite offline nutzbar */
-var CACHE = 'michi-plan-v1';
+/* Michi-Plan Service Worker — offline nutzbar, aber Inhalt immer aktuell */
+var CACHE = 'michi-plan-v2';
 var ASSETS = ['./index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(e){
   e.waitUntil(
     caches.open(CACHE).then(function(c){
-      // einzeln cachen, damit ein fehlendes File die Installation nicht abbricht
-      return Promise.all(ASSETS.map(function(u){
-        return c.add(u).catch(function(){});
-      }));
+      return Promise.all(ASSETS.map(function(u){ return c.add(u).catch(function(){}); }));
     }).then(function(){ return self.skipWaiting(); })
   );
 });
@@ -24,6 +21,16 @@ self.addEventListener('activate', function(e){
 
 self.addEventListener('fetch', function(e){
   if(e.request.method !== 'GET'){ return; }
+  if(e.request.mode === 'navigate'){
+    e.respondWith(
+      fetch(e.request).then(function(resp){
+        var copy = resp.clone();
+        caches.open(CACHE).then(function(c){ try{ c.put('./index.html', copy); }catch(_){} });
+        return resp;
+      }).catch(function(){ return caches.match('./index.html'); })
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(function(hit){
       if(hit){ return hit; }
@@ -31,9 +38,6 @@ self.addEventListener('fetch', function(e){
         var copy = resp.clone();
         caches.open(CACHE).then(function(c){ try{ c.put(e.request, copy); }catch(_){} });
         return resp;
-      }).catch(function(){
-        // Offline und nicht im Cache -> Startseite liefern (Single-Page)
-        return caches.match('./index.html');
       });
     })
   );
